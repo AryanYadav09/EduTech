@@ -214,8 +214,8 @@ export const dummyStudentEnrolled = [
 export const dummyCourses = [
     {
         "_id": "605c72efb3f1c2b1f8e4e1a1",
-        "courseTitle": "Introduction to JavaScript",
-        "courseDescription": "<h2>Learn the Basics of JavaScript</h2><p>JavaScript is a versatile programming language that powers the web. In this course, you will learn the fundamentals of JavaScript, including syntax, data types, and control structures.</p><p>This course is perfect for beginners who want to start their journey in web development. By the end of this course, you will be able to create interactive web pages and understand the core concepts of JavaScript.</p><ul><li>Understand the basics of programming</li><li>Learn how to manipulate the DOM</li><li>Create dynamic web applications</li></ul>",
+        "courseTitle": "Introduction to Marketing",
+        "courseDescription": "<h2>Learn the Basics of Marketing</h2><p>Marketing is a crucial aspect of any business. In this course, you will learn the fundamentals of marketing, including market research, branding, and digital marketing strategies.</p><p>This course is perfect for beginners who want to start their journey in marketing. By the end of this course, you will be able to create effective marketing campaigns and understand the core concepts of marketing.</p><ul><li>Understand the basics of marketing</li><li>Learn how to conduct market research</li><li>Create a marketing plan</li></ul>",
         "coursePrice": 49.99,
         "isPublished": true,
         "discount": 20,
@@ -287,7 +287,7 @@ export const dummyCourses = [
     },
     {
         "_id": "675ac1512100b91a6d9b8b24",
-        "courseTitle": "Advanced Python Programming",
+        "courseTitle": "Advanced Network Marketing",
         "courseDescription": "<h2>Deep Dive into Python Programming</h2><p>This course is designed for those who have a basic understanding of Python and want to take their skills to the next level. You will explore advanced topics such as decorators, generators, and context managers.</p><p>By the end of this course, you will be able to write efficient and clean Python code, and understand how to leverage Python's powerful features for real-world applications.</p><ul><li>Master advanced data structures</li><li>Implement object-oriented programming concepts</li><li>Work with libraries and frameworks</li></ul>",
         "coursePrice": 79.99,
         "isPublished": true,
@@ -359,7 +359,7 @@ export const dummyCourses = [
     },
     {
         "_id": "605c72efb3f1c2b1f8e4e1ae",
-        "courseTitle": "Cybersecurity Basics",
+        "courseTitle": "Marketing Basics",
         "courseDescription": "<h2>Protect Systems and Networks</h2><p>Cybersecurity is critical in today's digital age. This course introduces the fundamentals of cybersecurity, including threat analysis, ethical hacking, and secure programming practices.</p><p>By the end of this course, you will understand how to identify vulnerabilities and implement security measures effectively.</p><ul><li>Understand security protocols</li><li>Learn about encryption techniques</li><li>Conduct basic penetration testing</li></ul>",
         "coursePrice": 69.99,
         "isPublished": true,
@@ -425,8 +425,8 @@ export const dummyCourses = [
     },
     {
         "_id": "605c72efb3f1c2b1f8e4e1a7",
-        "courseTitle": "Web Development Bootcamp",
-        "courseDescription": "<h2>Become a Full-Stack Web Developer</h2><p>This comprehensive bootcamp covers everything you need to know to become a full-stack web developer. From HTML and CSS to JavaScript and backend technologies, this course is designed to take you from beginner to job-ready.</p><p>Throughout the course, you will work on real-world projects, build a portfolio, and gain the skills necessary to succeed in the tech industry.</p><ul><li>Learn front-end and back-end development</li><li>Build responsive and dynamic web applications</li><li>Understand databases and server-side programming</li></ul>",
+        "courseTitle": "Digital Marketing Strategies",
+        "courseDescription": "<h2>Become a Digital Marketing Expert</h2><p>This comprehensive bootcamp covers everything you need to know to become a digital marketing expert. From SEO and content marketing to social media and analytics, this course is designed to take you from beginner to job-ready.</p><p>Throughout the course, you will work on real-world projects, build a portfolio, and gain the skills necessary to succeed in the digital marketing industry.</p><ul><li>Learn SEO and SEM techniques</li><li>Build effective social media campaigns</li><li>Understand web analytics and data-driven marketing</li></ul>",
         "coursePrice": 99.99,
         "isPublished": true,
         "discount": 25,
@@ -556,8 +556,8 @@ export const dummyCourses = [
     },
     {
         "_id": "605c72efb3f1c2b1f8e4e1ad",
-        "courseTitle": "Data Science with Python",
-        "courseDescription": "<h2>Start Your Data Science Journey</h2><p>Data Science is one of the most in-demand fields in the world. This course teaches you the essentials of data analysis, visualization, and machine learning using Python. Learn libraries like Pandas, NumPy, Matplotlib, and Scikit-learn.</p><p>By the end of this course, you will be equipped to work on real-world data projects and gain insights from data.</p><ul><li>Data cleaning and preprocessing</li><li>Exploratory Data Analysis (EDA)</li><li>Build predictive models</li></ul>",
+        "courseTitle": "Marketing Analytics",
+        "courseDescription": "<h2>Start Your Marketing Analytics Journey</h2><p>Marketing Analytics is a crucial aspect of modern marketing. This course teaches you the essentials of data analysis, visualization, and interpretation in the context of marketing. Learn how to use tools like Google Analytics, Tableau, and Excel to make data-driven decisions.</p><p>By the end of this course, you will be equipped to work on real-world marketing projects and gain insights from data.</p><ul><li>Data cleaning and preprocessing</li><li>Exploratory Data Analysis (EDA)</li><li>Build predictive models</li></ul>",
         "coursePrice": 89.99,
         "isPublished": true,
         "discount": 20,
