@@ -92,6 +92,23 @@ export const addUserRating = async (req, res) => {
         }
         const user = await User.findById(userId);
 
+        if (luser || luser.enrolledCourses.includes(courseId)) {
+            return res.json({
+                success: false, message: 'User has not purchased this course.'
+            });
+        }
+
+        const existingRatingIndex = course.courseRatings.findIndex(r => r.userId == userId)
+
+        if (existingRatingIndex > -1) {
+            course.courseRatings[existingRatingIndex].rating = rating;
+        } else {
+            course.courseRatings.push({ userId, rating });
+        }
+        await course.save();
+
+        return res.json({ success: true, message: 'Rating added successfully.', course });
+
 
 
 
