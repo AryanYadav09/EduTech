@@ -1,10 +1,14 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useContext } from 'react'
 import uniqid from 'uniqid'
 import Quill from 'quill'
 import { assets } from '../../assets/assets'
 import "quill/dist/quill.snow.css";
+import { AppContext } from '../../context/AppContext';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const AddCourse = () => {
+  const {backendUrl, getToken} = useContext(AppContext)
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -101,19 +105,47 @@ const AddCourse = () => {
 
   // Submit handler: collects Quill HTML and all data
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    const courseDescriptionHtml = quillRef.current ? quillRef.current.root.innerHTML : ''
-    const payload = {
-      courseTitle,
-      coursePrice: Number(coursePrice) || 0,
-      discount: Number(discount) || 0,
-      thumbnailFile: image,
-      courseDescriptionHtml,
-      chapters
+    try {
+      e.preventDefault()
+      if(!image){
+        toast.error('thumbnail not selected')
+      }
+
+      const courseData = {
+        courseTitle,
+        courseDescription: quillRef.current.root.innerHTML,
+        coursePrice: Number(coursePrice),
+        discount: Number(discount) || 0,
+        courseContent: chapters,
+      }
+
+      const formData = new FormData()
+      formData.append('courseData', JSON.stringify(courseData))
+      formData.append('image', image)
+
+      const token = await getToken()
+      const {data} = await axios.post(backendUrl + '/api/educator/add-course', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if(data.success){
+        toast.success(data.message)
+        setCourseTitle('')
+        setCoursePrice(0)
+        setDiscount(0)
+        setImage(null)
+        setChapters([])
+        quillRef.current.root.innerHTML= ""
+      }else{
+        toast.error(data.message)
+      }
+
+    } catch (error) {
+      toast.error(error.message)
     }
-    // For now just log — replace with API call
-    console.log('Course payload:', payload)
-    alert('Course payload logged to console. Replace with actual API call.')
+   
   }
 
   return (

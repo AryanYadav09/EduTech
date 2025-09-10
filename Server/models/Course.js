@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const lectureSchema = new mongoose.Schema({
-    lectured: { type: String, required: true },
+    lectured: { type: String },
     lectureTitle: { type: String, required: true },
     lectureDuration: { type: Number, required: true },
     lectureUrl: { type: String, required: true },

@@ -5,7 +5,7 @@ import User from "../models/User.js"
 //get user data
 export const getUserData = async (req, res) => {
     try {
-        const userId = req.auth.userId
+        const userId = req.auth && req.auth.userId;
         const user = await User.findById(userId)
 
         if (!user) {
@@ -22,7 +22,7 @@ export const getUserData = async (req, res) => {
 //User enrolled courses with lecture links
 export const userEnrolledCourses = async (req, res) => {
     try {
-        const userId = req.auth.userId
+        const userId = req.auth && req.auth.userId;
         const userData = await User.findById(userId).populate('enrolledCourses')
         res.json({ success: true, enrolledCourses: userData.enrolledCourses })
     } catch (error) {
@@ -33,7 +33,7 @@ export const userEnrolledCourses = async (req, res) => {
 //Update user Course progress
 export const updateCourseProgress = async (req, res) => {
     try {
-        const userId = req.auth.userId
+        const userId = req.auth && req.auth.userId;
         const { courseId, lectureId } = req.body
         const progressData = await CourseProgress.findOne({ userId, courseId })
 
@@ -62,7 +62,7 @@ export const updateCourseProgress = async (req, res) => {
 export const getUserCourseProgress = async (req, res) => {
 
     try {
-        const userId = req.auth.userId
+        const userId = req.auth && req.auth.userId;
         const { courseId } = req.body
         const progressData = await CourseProgress.findOne({ userId, courseId })
             res.json({ success: true, progressData })
@@ -73,7 +73,7 @@ export const getUserCourseProgress = async (req, res) => {
 
 //adding user rating to course
 export const addUserRating = async (req, res) => {
-    const userId = req.auth.userId
+    const userId = req.auth && req.auth.userId;
     const { courseId, rating } = req.body;
 
     if (!courseId || !userId || !rating || rating < 1 || rating > 5) {
@@ -92,7 +92,7 @@ export const addUserRating = async (req, res) => {
         }
         const user = await User.findById(userId);
 
-        if (luser || luser.enrolledCourses.includes(courseId)) {
+        if (!user || !user.enrolledCourses.includes(courseId)) {
             return res.json({
                 success: false, message: 'User has not purchased this course.'
             });

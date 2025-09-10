@@ -2,20 +2,39 @@ import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { assets, dummyDashboardData } from '../../assets/assets';
 import Loading from '../../components/student/Loading';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const Dashboard = () => {
 
-  const {currency } = useContext(AppContext);
+  const {currency, backendUrl, getToken, isEducator} = useContext(AppContext);
   const [DashboardData, setDashboardData] = useState(null)
 
   const fetchDashboardData = async () => {
-    setDashboardData(dummyDashboardData)
+    try {
+      const token = await getToken()
+      const {data} = await axios.get(backendUrl + '/api/educator/dashboard', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      
+      if (data.success) {
+        setDashboardData(data.dashboardData)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
 
   }
 
   useEffect(()=> {
+   if(isEducator){
     fetchDashboardData()
-  },[])
+   }
+  },[isEducator])
 
   return DashboardData? (
     <div className='min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0'>
@@ -26,6 +45,13 @@ const Dashboard = () => {
             <div>
               <p className='text-2x1 font-medium text-gray-60θ'>{DashboardData.enrolledStudentsData.length}</p>
               <p className='text-base text-gray-50θ'>Total Enrolments</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shadow-card border border=blue-500 p-4 w-56 rounded-md">
+            <img src={assets.appointments_icon} alt="appointments_icon" />
+            <div>
+              <p className='text-2x1 font-medium text-gray-60θ'>{DashboardData.totalCourses}</p>
+              <p className='text-base text-gray-50θ'>Total Courses</p>
             </div>
           </div>
           <div className='flex items-center gap-3 shadow-card border border-blue-500 p-4 w-56 rounded-md'>

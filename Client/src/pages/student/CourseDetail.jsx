@@ -16,17 +16,20 @@ const CourseDetails = () => {
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
   const [playerData, setPlayerData] = useState(false);
   const { allCourses, calculateRating, calculateChapterTime, currency, calculateNoOfLectures, calculateCourseDuration, backendUrl, userData, getToken } = useContext(AppContext)
+  const [loading, setLoading] = useState(true);
 
   const fetchCourseData = async () => {
    try {
     const {data} = await axios.get(backendUrl + '/api/course/' + id)
     if(data?.success){
-      setCourseData(data.courseData)
+      setCourseData(data.course)
     }else{
       toast.error(data?.message || 'Could not fetch course details')
     }
    } catch (error) {
     toast.error(error.message)
+   }finally{
+    setLoading(false);
    }
   }
 
@@ -66,8 +69,8 @@ const CourseDetails = () => {
   const toggleSection = (index) => {
     setOpenSection((prev) => ({ ...prev, [index]: !prev[index] }))
   }
-
-  if (!courseData) return <Loading />
+  if (loading) return <Loading />
+  if (!courseData) return <p>Course not found</p>;
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-b from-cyan-100 via-white to-gray-200 pt-20">

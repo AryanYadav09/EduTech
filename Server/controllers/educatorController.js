@@ -2,23 +2,27 @@ import { clerkClient } from '@clerk/express'
 import Course from '../models/Course.js'
 import { v2 as cloudinary } from 'cloudinary'
 import Purchase from '../models/Purchase.js'
+import User from '../models/User.js'
 
-// update role to education
+
 export const updateRoleToEducator = async (req, res) => {
     try {
-        const userId = req.auth.userId
+        const auth = (typeof req.auth === 'function') ? req.auth() : req.auth;
+        const userId = auth?.userId;
+        if (!userId) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
-        await clerkClient.users.updateUserMetadata(userId, {
-            publicMetadata: {
-                role: 'education',
-            }
+        // Use updateUser (most stable across Clerk versions)
+        await clerkClient.users.updateUser(userId, {
+            publicMetadata: { role: 'educator' }
         });
-        res.json({ success: true, message: 'You can publish a course now' })
+
+        return res.json({ success: true, message: 'You can publish a course now' });
+    } catch (error) {
+        console.error('updateRoleToEducator error:', error);
+        return res.status(500).json({ success: false, message: error.message });
     }
-    catch (error) {
-        res.json({ success: false, message: error.message })
-    }
-}   
+};
+
 
 // add course
 export const addCourse = async (req, res) => {
@@ -63,7 +67,7 @@ export const getEducatorCourses = async (req, res) => {
 export const educatorDashboardData = async (req, res) => {
     try {
         const educator = req.auth.userId;
-        const courses = await Course.find((educator));
+        const courses = await Course.find(({educator}));
         const totalCourses = courses.length;
 
         const courseIds = courses.map(course => course._id);

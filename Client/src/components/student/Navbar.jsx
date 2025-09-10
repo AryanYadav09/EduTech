@@ -16,25 +16,34 @@ const Navbar = () => {
   const {user} = useUser()
 
 
-  const becomeEductor = async() => {
+  const becomeEductor = async () => {
     try {
-      if(isEducator){
-        navigate('/educator')
-        return
+      if (isEducator) {
+        navigate('/educator');
+        return;
       }
-      const token = await getToken()  
-      const {data} = await axios.get(backendUrl + '/api/educator/update-role', {headers: {Authorization: `Bearer ${token}`}})
 
-      if(data?.success){
-        setIsEducator(true)
-        toast.success(data.message)
-      }else{
-        toast.error(data?.message || 'Could not update role to educator' )
+      // getToken must be Clerk's getToken (or your wrapper). Make sure it returns a valid JWT.
+      const token = await getToken(); // confirm this returns a token string
+      console.log('Token length:', token?.length);
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/educator/update-role`,
+        {}, // empty body
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data?.success) {
+        setIsEducator(true);
+        toast.success(data.message);
+      } else {
+        toast.error(data?.message || 'Could not update role to educator');
       }
     } catch (error) {
-      toast.error(error.message)  
+      console.error('becomeEductor error:', error);
+      toast.error(error?.response?.data?.message || error.message);
     }
-  }
+  };
 
   return (
     <div className={`flex items-center justify-between px-4 sm:px-10 md:px-14 lg:px-36 border-b border-gray-500 py-4 ${isCourseListPage ? 'bg-white' : 'bg-cyan-100/70'}`}>
