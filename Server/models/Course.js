@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const lectureSchema = new mongoose.Schema({
-    lectured: { type: String },
+    lectureId: { type: String, required: true },
     lectureTitle: { type: String, required: true },
     lectureDuration: { type: Number, required: true },
     lectureUrl: { type: String, required: true },
@@ -18,7 +18,14 @@ const chapterSchema = new mongoose.Schema({
 
 const courseschema = new mongoose.Schema({
     courseTitle: { type: String, required: true },
+    courseSubtitle: { type: String, default: "" },
     courseDescription: { type: String, required: true },
+    courseAbout: { type: String, default: "" },
+    courseIncludes: [{ type: String }],
+    courseOutcomes: [{ type: String }],
+    courseRequirements: [{ type: String }],
+    courseLevel: { type: String, default: "All Levels" },
+    courseLanguage: { type: String, default: "English" },
     courseThumbnail: { type: String },
     coursePrice: { type: Number, required: true },
     isPublished: { type: Boolean, default: true },

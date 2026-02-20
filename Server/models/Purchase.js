@@ -12,6 +12,8 @@ const PurchaseSchema = new mongoose.Schema({
         required: true
     },
     amount: { type: Number, required: true },
+    paymentMethod: { type: String, default: "" },
+    transactionId: { type: String, default: "" },
     status: {
         type: String, enum: ['pending', 'completed',
             'failed'], default: 'pending'

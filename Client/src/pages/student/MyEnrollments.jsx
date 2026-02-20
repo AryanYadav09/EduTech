@@ -3,6 +3,7 @@ import { AppContext } from '../../context/AppContext';
 import { Line } from 'rc-progress'
 import Footer from '../../components/student/Footer';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const MyEnrollments = () => {
 
@@ -73,7 +74,7 @@ const MyEnrollments = () => {
                     <p className='mb-1 max-sm:text-sm'>{course.courseTitle}</p>
                     <Line
                       strokeWidth={2}
-                      percent={progressArray[index] ? (progressArray[index].lectureCompleted * 100) / progressArray[index].totallectures : 0}
+                      percent={progressArray[index] ? (progressArray[index].lectureCompleted * 100) / progressArray[index].totalLectures : 0}
                       className="bg-gray-300 rounded-full"
                     />
                   </div>
@@ -82,12 +83,12 @@ const MyEnrollments = () => {
                   {calculateCourseDuration(course)}
                 </td>
                 <td className='px-4 py-3 max-sm:hidden'>
-                  {progressArray[index] && `${progressArray[index].lectureCompleted} / ${progressArray[index].totallectures}`}
+                  {progressArray[index] && `${progressArray[index].lectureCompleted} / ${progressArray[index].totalLectures}`}
                   <span> lectures</span>
                 </td>
                 <td className='px-4 py-3 max-sm:text-right'>
                   <button onClick={() => navigate('/player/' + course._id)} className='px-3 sm:px-5 py-1.5 sm:py-2 bg-blue-600 max-sm:text-xs text-white'>
-                    {progressArray[index] && progressArray[index].lectureCompleted / progressArray[index].totallectures == 1 ? 'Completed' : 'On Going'}
+                    {progressArray[index] && progressArray[index].lectureCompleted / progressArray[index].totalLectures === 1 ? 'Completed' : 'On Going'}
                   </button>
                 </td>
               </tr>

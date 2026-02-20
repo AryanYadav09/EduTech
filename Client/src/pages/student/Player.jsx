@@ -7,6 +7,8 @@ import YouTube from 'react-youtube'
 import Footer from '../../components/student/Footer'
 import Rating from '../../components/student/Rating'
 import Loading from '../../components/student/Loading'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 const Player = () => {
 
@@ -19,16 +21,12 @@ const Player = () => {
   const[initialRating, setInitialRating] = useState(0)
 
   const getCourseData = () => {
-    enrolledCourses.map((course) => {
-      if (course._id === courseId) {
-        setCourseData(course)
-        course.courseRating.map((item)=> {
-          if(item.userId === userData._id){
-            setInitialRating(item.rating)
-          }
-        })
-      }
-    })
+    const matchedCourse = enrolledCourses.find((course) => course._id === courseId);
+    if (!matchedCourse) return;
+
+    setCourseData(matchedCourse);
+    const myRating = matchedCourse.courseRatings?.find((item) => item.userId === userData?._id)?.rating || 0;
+    setInitialRating(myRating);
   }
 
   const toggleSection = (index) => {
@@ -91,7 +89,7 @@ const Player = () => {
     
   }
 
-  const handleRate = async()=>{
+  const handleRate = async (rating) =>{
     try {
       const token = await getToken()
       const { data } = await axios.post(backendUrl + '/api/user/add-rating',
@@ -99,6 +97,7 @@ const Player = () => {
 
       if (data.success) {
         toast.success(data.message)
+        setInitialRating(rating)
         fetchUserEnrolledCourses()
       } else {
         toast.error(data.message)
@@ -108,9 +107,9 @@ const Player = () => {
     }
   }
 
-  useEffect(()=>{
-    getCourseProgress()
-    },[])
+  useEffect(() => {
+    if (courseId) getCourseProgress()
+  }, [courseId])
 
 
   return courseData ?  (
@@ -182,7 +181,7 @@ const Player = () => {
               />
               <div className='flex justify-between items-center mt-2'>
                 <p>{playerData.chapter}.{playerData.lecture} {playerData.lectureTitle}</p>
-                <button onClick={()=> markLectureAsCompleted(playerData.lectureId)} className='text-blue-600'>{progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? 'Completed' : 'Mark Complete'}</button>
+                <button onClick={()=> markLectureAsCompleted(courseData._id, playerData.lectureId)} className='text-blue-600'>{progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? 'Completed' : 'Mark Complete'}</button>
               </div>
             </div>
           ) : (
