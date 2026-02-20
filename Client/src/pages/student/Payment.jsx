@@ -135,14 +135,14 @@ const Payment = () => {
 
   return (
     <>
-      <div className='min-h-screen px-4 sm:px-10 md:px-14 lg:px-36 pt-24 pb-12 bg-gradient-to-b from-blue-50 via-white to-cyan-50'>
-        <h1 className='text-3xl font-semibold text-gray-900'>Course Payment</h1>
-        <p className='text-sm text-gray-500 pt-2'>Complete payment to enroll in this course.</p>
+      <div className='min-h-screen section-shell px-4 sm:px-10 md:px-14 lg:px-24 pt-24 pb-12'>
+        <h1 data-animate="heading" className='text-3xl font-semibold text-slate-900'>Course Payment</h1>
+        <p data-animate="text" className='text-sm animate-copy pt-2'>Complete payment to enroll in this course.</p>
 
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 pt-8'>
-          <div className='lg:col-span-7 bg-white rounded-2xl border border-gray-200 shadow-sm p-6'>
+          <div data-animate="card" className='lg:col-span-7 modern-card bg-white p-6'>
             <h2 className='text-xl font-semibold text-gray-900'>Payment Gateway</h2>
-            <p className='text-sm text-gray-500 pt-1'>Choose payment method and complete your transaction.</p>
+            <p className='text-sm animate-copy pt-1'>Choose payment method and complete your transaction.</p>
 
             <div className='pt-5 flex flex-wrap gap-3'>
               {[
@@ -155,7 +155,7 @@ const Payment = () => {
                   key={method.id}
                   type='button'
                   onClick={() => setPaymentMethod(method.id)}
-                  className={`px-4 py-2 rounded-full text-sm border ${paymentMethod === method.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'}`}
+                  className={`px-4 py-2 rounded-full text-sm border transition-all duration-300 ${paymentMethod === method.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'}`}
                 >
                   {method.label}
                 </button>
@@ -222,14 +222,15 @@ const Payment = () => {
               <button
                 type='submit'
                 disabled={processingPayment}
-                className='w-full bg-blue-600 text-white py-3 rounded-lg font-medium disabled:opacity-60'
+                data-animate="button"
+                className='modern-btn w-full text-white py-3 font-medium disabled:opacity-60 disabled:cursor-not-allowed'
               >
                 {processingPayment ? 'Processing Payment...' : `Pay ${currency}${finalPrice}`}
               </button>
             </form>
           </div>
 
-          <div className='lg:col-span-5 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 h-fit'>
+          <div data-animate="card" className='lg:col-span-5 modern-card bg-white p-6 h-fit'>
             <h2 className='text-xl font-semibold text-gray-900'>Order Summary</h2>
 
             <div className='pt-4 flex items-start gap-4'>

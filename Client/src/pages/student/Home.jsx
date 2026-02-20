@@ -8,7 +8,7 @@ import Footer from '../../components/student/Footer.jsx'
 
 const Home = () => {
   return (
-    <div className='flex flex-col items-center space-y-7 text-center' >
+    <div className='flex flex-col items-center space-y-7 text-center w-full pb-10' >
       <Hero/>
       <Companies/>
       <CourseSection/>

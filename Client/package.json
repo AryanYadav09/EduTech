@@ -13,6 +13,7 @@
     "@clerk/clerk-react": "^5.43.0",
     "@clerk/nextjs": "^6.31.2",
     "axios": "^1.11.0",
+    "gsap": "^3.14.2",
     "humanize-duration": "^3.33.0",
     "quill": "^2.0.3",
     "rc-progress": "^4.0.0",

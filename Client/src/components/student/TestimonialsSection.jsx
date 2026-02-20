@@ -4,17 +4,17 @@ import {assets }from '../../assets/assets'
 
 const TestimonialsSection = () => {
   return (
-    <div className='pb-14 px-8 md:px-0'>
-      <h2 className='text-3xl font-medium text-gray-800'>Testimonials</h2>
-      <p className='md:text-base text-gray-500 mt-3'>Hear from our learners as they share their journeys of transformation, success, and how our <br /> platform has made a difference in their lives.</p>
+    <div className='pb-16 section-shell px-8 md:px-16'>
+      <h2 data-animate="heading" className='text-3xl md:text-4xl font-semibold text-slate-900'>Testimonials</h2>
+      <p data-animate="text" className='md:text-base animate-copy mt-3'>Hear from our learners as they share their journeys of transformation, success, and how our <br /> platform has made a difference in their lives.</p>
       <div className='grid grid-cols-auto gap-8 mt-14' >
         {dummyTestimonial.map((testimonial, index) => (
-          <div key={index} className='text-sm text-left border border-gray-500/30 pb-6 rounded-lg bg-white shadow-[0px_4px_15px_0px] shadow-black/5 overflow-hidden'>
-            <div className='flex items-center gap-4 px-5 py-4 bg-gray-500/10'>
+          <div key={index} data-animate="card" className='modern-card text-sm text-left pb-6 overflow-hidden'>
+            <div className='flex items-center gap-4 px-5 py-4 bg-slate-100/70'>
               <img className='h-12 w-12 rounded-full' src={testimonial.image} alt={testimonial.name} />
               <div>
-                <h1 className='text-lg font-medium text-gray-800'>{testimonial.name}</h1>
-                <p className='text-gray-800/80'>{testimonial.role}</p>
+                <h1 className='text-lg font-medium text-slate-900'>{testimonial.name}</h1>
+                <p className='text-slate-700/80'>{testimonial.role}</p>
               </div>
               
             </div>
@@ -29,9 +29,9 @@ const TestimonialsSection = () => {
                   />
                 ))}
               </div>
-              <p className='text-gray-500 mt-5'>{testimonial.feedback}</p>
+              <p className='animate-copy mt-5'>{testimonial.feedback}</p>
             </div>
-            <a href="#" className='text-blue-500 underline px-5'>Read More</a>
+            <a href="#" data-animate="button" className='outline-btn ml-5'>Read More</a>
           </div>
         ))}
       </div>

@@ -15,10 +15,10 @@ import { protectEducator } from '../middlewares/authMiddleware.js';
 const educatorRouter = express.Router();
 
 educatorRouter.post('/update-role', updateRoleToEducator);
-educatorRouter.post('/add-course', upload.single('image'), protectEducator, addCourse);
+educatorRouter.post('/add-course', protectEducator, upload.any(), addCourse);
 educatorRouter.get('/courses', protectEducator, getEducatorCourses);
 educatorRouter.get('/course/:id', protectEducator, getEducatorCourseById);
-educatorRouter.put('/course/:id', upload.single('image'), protectEducator, updateEducatorCourse);
+educatorRouter.put('/course/:id', protectEducator, upload.any(), updateEducatorCourse);
 educatorRouter.delete('/course/:id', protectEducator, deleteEducatorCourse);
 educatorRouter.get('/dashboard', protectEducator, educatorDashboardData);
 educatorRouter.get('/enrolled-students', protectEducator, getEnrolledStudentsData);

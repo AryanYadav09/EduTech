@@ -15,22 +15,30 @@ import EditCourse from './pages/educator/EditCourse.jsx';
 import MyCourses from './pages/educator/MyCourses.jsx';
 import StudentsEnrolled from './pages/educator/StudentsEnrolled.jsx';
 import "quill/dist/quill.snow.css";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import useGsapAnimations from './hooks/useGsapAnimations.js';
 
 import Navbar from './components/student/Navbar.jsx';
 
 const App = () => {
+  useGsapAnimations();
 
   const isEducatorRoute = useMatch('/educator/*')
  
   return (
-    <div className='text-default min-h-screen bg-white'>
+    <div className='text-default min-h-screen bg-page text-slate-900 relative overflow-x-hidden'>
+      <div className='pointer-events-none fixed inset-0 -z-10'>
+        <div className='absolute -top-32 left-[-12%] h-96 w-96 rounded-full bg-[radial-gradient(circle,_rgba(96,165,250,0.45)_0%,_rgba(96,165,250,0)_72%)]' />
+        <div className='absolute top-[26%] right-[-10%] h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(circle,_rgba(45,212,191,0.35)_0%,_rgba(45,212,191,0)_72%)]' />
+        <div className='absolute bottom-[-10%] left-[28%] h-[22rem] w-[22rem] rounded-full bg-[radial-gradient(circle,_rgba(56,189,248,0.2)_0%,_rgba(56,189,248,0)_75%)]' />
+      </div>
       <ToastContainer/>
       {!isEducatorRoute && <Navbar />}
       <Routes>
         {/* Student routes */}
         <Route path="/" element={<Home />} />
         <Route path="/course-list" element={<CoursesList />} />
+        <Route path="/course-list/:input" element={<CoursesList />} />
         <Route path="/course/:id" element={<CourseDetail />} />
         <Route path="/payment/:courseId" element={<Payment />} />
         <Route path="/my-enrollments" element={<MyEnrollments />} />

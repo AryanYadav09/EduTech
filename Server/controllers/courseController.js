@@ -31,12 +31,10 @@ export const getCourseId = async (req, res) => {
 
         const courseResponse = courseData.toObject();
 
-        // Remove lectureUrl if isPreviewFree is false
+        // Public course endpoint should not expose full lecture videos.
         courseResponse.courseContent.forEach(chapter => {
             chapter.chapterContent.forEach(lecture => {
-                if (!lecture.isPreviewFree) {
-                    lecture.lectureUrl = "";
-                }
+                lecture.lectureUrl = "";
             })
         });
 

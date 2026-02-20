@@ -21,6 +21,7 @@ const sanitizeCourseContent = (courseContent = []) => {
                 lectureTitle: String(lecture?.lectureTitle || '').trim(),
                 lectureDuration: Number(lecture?.lectureDuration) || 0,
                 lectureUrl: String(lecture?.lectureUrl || '').trim(),
+                lectureUploadKey: String(lecture?.lectureUploadKey || '').trim(),
                 isPreviewFree: Boolean(lecture?.isPreviewFree),
                 lectureOrder: Number(lecture?.lectureOrder) || lectureIndex + 1,
             }))
@@ -40,6 +41,7 @@ const buildSanitizedCourseData = (parsedCourseData, educatorId, courseThumbnail)
     courseSubtitle: String(parsedCourseData?.courseSubtitle || '').trim(),
     courseDescription: String(parsedCourseData?.courseDescription || '').trim(),
     courseAbout: String(parsedCourseData?.courseAbout || '').trim(),
+    trailerUrl: String(parsedCourseData?.trailerUrl || '').trim(),
     courseIncludes: normalizeList(parsedCourseData?.courseIncludes),
     courseOutcomes: normalizeList(parsedCourseData?.courseOutcomes),
     courseRequirements: normalizeList(parsedCourseData?.courseRequirements),
@@ -79,7 +81,11 @@ const validateCourseData = (sanitizedCourse) => {
 
     const hasInvalidChapter = sanitizedCourse.courseContent.some((chapter) => {
         if (!chapter.chapterTitle || chapter.chapterContent.length === 0) return true;
-        return chapter.chapterContent.some((lecture) => !lecture.lectureTitle || !lecture.lectureUrl || lecture.lectureDuration <= 0);
+        return chapter.chapterContent.some(
+            (lecture) => !lecture.lectureTitle
+                || (!lecture.lectureUrl && !lecture.lectureUploadKey)
+                || lecture.lectureDuration <= 0
+        );
     });
 
     if (hasInvalidChapter) {
@@ -87,6 +93,54 @@ const validateCourseData = (sanitizedCourse) => {
     }
 
     return null;
+};
+
+const mapUploadedFilesByField = (files = []) => files.reduce((acc, file) => {
+    if (!acc[file.fieldname]) {
+        acc[file.fieldname] = [];
+    }
+    acc[file.fieldname].push(file);
+    return acc;
+}, {});
+
+const uploadCourseMedia = async (file, folder) => {
+    const uploadResult = await cloudinary.uploader.upload(file.path, {
+        resource_type: 'video',
+        folder,
+    });
+    return uploadResult.secure_url;
+};
+
+const resolveCourseMedia = async (sanitizedCourse, filesByField, existingCourse = null) => {
+    for (const chapter of sanitizedCourse.courseContent) {
+        for (const lecture of chapter.chapterContent) {
+            if (lecture.lectureUploadKey) {
+                const uploadedLectureFile = filesByField[lecture.lectureUploadKey]?.[0];
+                if (!uploadedLectureFile) {
+                    throw new Error(`Missing uploaded video for lecture "${lecture.lectureTitle}"`);
+                }
+                if (!uploadedLectureFile.mimetype?.startsWith('video/')) {
+                    throw new Error(`Invalid video file for lecture "${lecture.lectureTitle}"`);
+                }
+
+                lecture.lectureUrl = await uploadCourseMedia(uploadedLectureFile, 'edutech/lectures');
+            }
+
+            lecture.lectureUrl = String(lecture.lectureUrl || '').trim();
+            lecture.isPreviewFree = Boolean(lecture.isPreviewFree);
+            delete lecture.lectureUploadKey;
+        }
+    }
+
+    const trailerFile = filesByField.trailerVideo?.[0];
+    if (trailerFile) {
+        if (!trailerFile.mimetype?.startsWith('video/')) {
+            throw new Error('Invalid trailer file type');
+        }
+        sanitizedCourse.trailerUrl = await uploadCourseMedia(trailerFile, 'edutech/trailers');
+    } else if (!sanitizedCourse.trailerUrl && existingCourse?.trailerUrl) {
+        sanitizedCourse.trailerUrl = existingCourse.trailerUrl;
+    }
 };
 
 
@@ -113,7 +167,8 @@ export const updateRoleToEducator = async (req, res) => {
 export const addCourse = async (req, res) => {
     try {
         const { courseData } = req.body
-        const imageFile = req.file
+        const filesByField = mapUploadedFilesByField(Array.isArray(req.files) ? req.files : []);
+        const imageFile = filesByField.image?.[0];
         const educatorId = req.userId
 
         if (!educatorId) return res.status(401).json({ success: false, message: 'Not authenticated' })
@@ -133,6 +188,8 @@ export const addCourse = async (req, res) => {
         if (validationError) {
             return res.status(400).json({ success: false, message: validationError });
         }
+
+        await resolveCourseMedia(sanitizedCourse, filesByField);
 
         await Course.create(sanitizedCourse)
 
@@ -247,7 +304,8 @@ export const updateEducatorCourse = async (req, res) => {
         const educator = req.userId;
         const { id } = req.params;
         const { courseData } = req.body;
-        const imageFile = req.file;
+        const filesByField = mapUploadedFilesByField(Array.isArray(req.files) ? req.files : []);
+        const imageFile = filesByField.image?.[0];
 
         const existingCourse = await Course.findOne({ _id: id, educator });
         if (!existingCourse) {
@@ -276,6 +334,8 @@ export const updateEducatorCourse = async (req, res) => {
         if (validationError) {
             return res.status(400).json({ success: false, message: validationError });
         }
+
+        await resolveCourseMedia(sanitizedCourse, filesByField, existingCourse);
 
         await Course.findByIdAndUpdate(id, sanitizedCourse);
 

@@ -22,6 +22,8 @@ const getYoutubeVideoId = (url = '') => {
   }
 };
 
+const isYoutubeUrl = (url = '') => /(?:youtu\.be|youtube\.com)/i.test(url);
+
 const stripHtmlTags = (value = '') => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 const CourseDetails = () => {
@@ -110,6 +112,15 @@ const CourseDetails = () => {
     navigate(`/payment/${courseData._id}`);
   };
 
+  const handleWatchTrailer = () => {
+    if (!courseData?.trailerUrl) {
+      toast.error('Trailer is not available for this course yet.');
+      return;
+    }
+
+    setPlayerData({ url: courseData.trailerUrl, title: 'Course Trailer' });
+  };
+
   useEffect(() => {
     fetchCourseData()
   }, [id])
@@ -145,19 +156,19 @@ const CourseDetails = () => {
   if (!courseData) return <p className='pt-24 px-8'>Course not found</p>;
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-b from-cyan-100 via-white to-gray-200 pt-20">
-      <div className="absolute top-0 left-0 w-full h-[50vh] -z-10 bg-gradient-to-b from-cyan-100 via-white to-gray-200" />
+    <div className="relative min-h-screen w-full pt-20">
+      <div className="absolute top-0 left-0 w-full h-[50vh] -z-10 bg-gradient-to-b from-blue-100/60 via-white to-cyan-100/40" />
 
-      <div className="w-full px-4 sm:px-10 md:px-14 lg:px-36">
+      <div className="section-shell w-full px-4 sm:px-10 md:px-14 lg:px-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           <div className="lg:col-span-7">
             <div className="text-gray-700">
-              <h1 className="md:text-4xl text-2xl font-semibold text-gray-900">
+              <h1 data-animate="heading" className="md:text-4xl text-2xl font-semibold text-slate-900">
                 {courseData.courseTitle}
               </h1>
 
               {introText && (
-                <p className="pt-4 md:text-base text-sm text-gray-700">
+                <p data-animate="text" className="pt-4 md:text-base text-sm animate-copy">
                   {introText}
                 </p>
               )}
@@ -183,11 +194,11 @@ const CourseDetails = () => {
             </div>
 
             <div className="pt-10">
-              <h2 className="text-xl font-semibold text-gray-900">Course Structure</h2>
+              <h2 data-animate="heading" className="text-xl font-semibold text-slate-900">Course Structure</h2>
 
               <div className="pt-5">
                 {courseData.courseContent.map((chapter, index) => (
-                  <div key={chapter.chapterId || index} className="border border-gray-300 bg-white mb-3 rounded-lg shadow-sm">
+                  <div key={chapter.chapterId || index} data-animate="card" className="modern-card bg-white mb-3">
                     <div
                       className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
                       onClick={() => setOpenSection((prev) => ({ ...prev, [index]: !prev[index] }))}
@@ -213,14 +224,7 @@ const CourseDetails = () => {
                             <div className="flex items-center justify-between w-full text-gray-800 text-xs md:text-sm">
                               <p>{lecture.lectureTitle}</p>
                               <div className="flex gap-3 items-center">
-                                {lecture.isPreviewFree && (
-                                  <p
-                                    onClick={() => setPlayerData({ videoId: getYoutubeVideoId(lecture.lectureUrl) })}
-                                    className="text-blue-500 cursor-pointer"
-                                  >
-                                    Preview
-                                  </p>
-                                )}
+                                <p className="text-orange-600 font-medium">Locked</p>
                                 <p className="text-gray-600">
                                   {humanizeDuration(lecture.lectureDuration * 60 * 1000, { units: ['h', 'm'] })}
                                 </p>
@@ -237,14 +241,14 @@ const CourseDetails = () => {
 
             {courseData.courseAbout && (
               <div className='pt-10'>
-                <h3 className="text-xl font-semibold text-gray-900">About This Course</h3>
-                <p className='pt-3 text-gray-700 leading-relaxed'>{courseData.courseAbout}</p>
+                <h3 data-animate="heading" className="text-xl font-semibold text-slate-900">About This Course</h3>
+                <p data-animate="text" className='pt-3 animate-copy leading-relaxed'>{courseData.courseAbout}</p>
               </div>
             )}
 
             {courseData.courseOutcomes?.length > 0 && (
               <div className='pt-10'>
-                <h3 className="text-xl font-semibold text-gray-900">What You Will Learn</h3>
+                <h3 data-animate="heading" className="text-xl font-semibold text-slate-900">What You Will Learn</h3>
                 <ul className='list-disc pl-5 pt-3 text-gray-700 space-y-1'>
                   {courseData.courseOutcomes.map((item, index) => (
                     <li key={`${item}-${index}`}>{item}</li>
@@ -255,7 +259,7 @@ const CourseDetails = () => {
 
             {courseData.courseRequirements?.length > 0 && (
               <div className='pt-10'>
-                <h3 className="text-xl font-semibold text-gray-900">Requirements</h3>
+                <h3 data-animate="heading" className="text-xl font-semibold text-slate-900">Requirements</h3>
                 <ul className='list-disc pl-5 pt-3 text-gray-700 space-y-1'>
                   {courseData.courseRequirements.map((item, index) => (
                     <li key={`${item}-${index}`}>{item}</li>
@@ -265,7 +269,7 @@ const CourseDetails = () => {
             )}
 
             <div className="pt-12">
-              <h3 className="text-xl font-semibold text-gray-900">Course Description</h3>
+              <h3 data-animate="heading" className="text-xl font-semibold text-slate-900">Course Description</h3>
               <div
                 className="pt-3 rich-text leading-relaxed text-gray-700 max-w-[760px]"
                 dangerouslySetInnerHTML={{ __html: courseData.courseDescription }}
@@ -273,7 +277,7 @@ const CourseDetails = () => {
             </div>
 
             <div className='pt-12 pb-8'>
-              <h3 className='text-xl font-semibold text-gray-900'>Student Ratings</h3>
+              <h3 data-animate="heading" className='text-xl font-semibold text-slate-900'>Student Ratings</h3>
 
               <div className='flex items-center gap-3 pt-3'>
                 <Rating initialRating={selectedRating} onRate={handleRateCourse} className='text-2xl' />
@@ -290,7 +294,7 @@ const CourseDetails = () => {
                 )}
 
                 {(courseData.courseRatingDetails || []).map((item, index) => (
-                  <div key={`${item.userId}-${index}`} className='flex items-center justify-between bg-white border rounded-md px-4 py-3'>
+                  <div key={`${item.userId}-${index}`} data-animate="card" className='modern-card flex items-center justify-between bg-white px-4 py-3'>
                     <div className='flex items-center gap-3'>
                       {item.userImage
                         ? <img src={item.userImage} alt={item.userName} className='w-8 h-8 rounded-full object-cover' />
@@ -311,15 +315,25 @@ const CourseDetails = () => {
           <div className="lg:col-span-5 flex justify-end">
             <div className="w-full max-w-[420px] flex-shrink-0">
               <div className="sticky top-16">
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div data-animate="card" className="modern-card bg-white overflow-hidden">
                   <div className="relative">
                     {playerData
                       ? (
-                        <Youtube
-                          videoId={playerData.videoId}
-                          opts={{ playerVars: { autoplay: 1 } }}
-                          iframeClassName='w-full aspect-video'
-                        />
+                        isYoutubeUrl(playerData.url)
+                          ? (
+                            <Youtube
+                              videoId={getYoutubeVideoId(playerData.url)}
+                              opts={{ playerVars: { autoplay: 1 } }}
+                              iframeClassName='w-full aspect-video'
+                            />
+                          ) : (
+                            <video
+                              src={playerData.url}
+                              controls
+                              controlsList='nodownload'
+                              className='w-full aspect-video bg-black'
+                            />
+                          )
                       )
                       : (
                         <img
@@ -332,6 +346,15 @@ const CourseDetails = () => {
                   </div>
 
                   <div className="px-6 py-5">
+                    {courseData.trailerUrl && (
+                      <button
+                        onClick={handleWatchTrailer}
+                        className='outline-btn w-full mb-4 py-2.5'
+                      >
+                        Watch Trailer
+                      </button>
+                    )}
+
                     <div className="flex items-center gap-3">
                       <p className="text-gray-800 text-2xl md:text-3xl font-bold">
                         {currency}
@@ -365,7 +388,7 @@ const CourseDetails = () => {
                       <p>Language: <span className='text-gray-700'>{courseData.courseLanguage || 'English'}</span></p>
                     </div>
 
-                    <button onClick={handleEnroll} className='md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium'>
+                    <button data-animate="button" onClick={handleEnroll} className='modern-btn md:mt-6 mt-4 w-full py-3 text-white font-medium'>
                       {isAlreadyEnrolled ? 'Go to Course' : 'Enroll Now'}
                     </button>
 

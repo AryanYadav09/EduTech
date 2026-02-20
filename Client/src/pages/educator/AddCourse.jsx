@@ -11,7 +11,7 @@ const initialLectureState = {
   lectureTitle: '',
   lectureDuration: '',
   lectureUrl: '',
-  isPreviewFree: false,
+  lectureVideoFile: null,
 };
 
 const AddCourse = () => {
@@ -26,6 +26,8 @@ const AddCourse = () => {
   const [courseLevel, setCourseLevel] = useState('All Levels')
   const [coursePrice, setCoursePrice] = useState(0)
   const [discount, setDiscount] = useState(0)
+  const [trailerUrl, setTrailerUrl] = useState('')
+  const [trailerVideo, setTrailerVideo] = useState(null)
   const [image, setImage] = useState(null)
   const [chapters, setChapters] = useState([]);
   const [newChapterTitle, setNewChapterTitle] = useState('');
@@ -125,25 +127,30 @@ const AddCourse = () => {
       return;
     }
 
-    if (!lectureDetails.lectureUrl.trim()) {
-      toast.error('Please add lecture URL');
+    if (!Number(lectureDetails.lectureDuration)) {
+      toast.error('Please add lecture duration in minutes');
       return;
     }
 
-    if (!Number(lectureDetails.lectureDuration)) {
-      toast.error('Please add lecture duration in minutes');
+    if (!lectureDetails.lectureUrl.trim() && !lectureDetails.lectureVideoFile) {
+      toast.error('Add lecture link or upload lecture video');
       return;
     }
 
     setChapters((prev) => prev.map((chapter) => {
       if (chapter.chapterId !== currentChapterId) return chapter;
 
+      const lectureId = uniqid();
+      const lectureUploadKey = lectureDetails.lectureVideoFile ? `lectureVideo__${lectureId}` : '';
+
       const newLecture = {
-        lectureId: uniqid(),
+        lectureId,
         lectureTitle: lectureDetails.lectureTitle.trim(),
         lectureDuration: Number(lectureDetails.lectureDuration),
         lectureUrl: lectureDetails.lectureUrl.trim(),
-        isPreviewFree: Boolean(lectureDetails.isPreviewFree),
+        lectureUploadKey,
+        lectureVideoFile: lectureDetails.lectureVideoFile,
+        isPreviewFree: false,
         lectureOrder: chapter.chapterContent.length > 0
           ? chapter.chapterContent[chapter.chapterContent.length - 1].lectureOrder + 1
           : 1
@@ -163,6 +170,8 @@ const AddCourse = () => {
     setCourseLevel('All Levels');
     setCoursePrice(0);
     setDiscount(0);
+    setTrailerUrl('');
+    setTrailerVideo(null);
     setImage(null);
     setChapters([]);
     setNewChapterTitle('');
@@ -189,7 +198,7 @@ const AddCourse = () => {
         if (!chapter.chapterTitle.trim() || chapter.chapterContent.length === 0) return true;
         return chapter.chapterContent.some((lecture) => (
           !lecture.lectureTitle.trim()
-          || !lecture.lectureUrl.trim()
+          || (!lecture.lectureUrl.trim() && !lecture.lectureUploadKey)
           || Number(lecture.lectureDuration) <= 0
         ));
       });
@@ -208,6 +217,7 @@ const AddCourse = () => {
         courseIncludes,
         courseOutcomes,
         courseRequirements,
+        trailerUrl: trailerUrl.trim(),
         courseLevel,
         courseLanguage,
         coursePrice: Number(coursePrice),
@@ -221,7 +231,8 @@ const AddCourse = () => {
             lectureTitle: lecture.lectureTitle.trim(),
             lectureDuration: Number(lecture.lectureDuration),
             lectureUrl: lecture.lectureUrl.trim(),
-            isPreviewFree: Boolean(lecture.isPreviewFree),
+            lectureUploadKey: lecture.lectureUploadKey || '',
+            isPreviewFree: false,
             lectureOrder: lecture.lectureOrder,
           })),
         })),
@@ -230,6 +241,17 @@ const AddCourse = () => {
       const formData = new FormData()
       formData.append('courseData', JSON.stringify(courseData))
       formData.append('image', image)
+      if (trailerVideo) {
+        formData.append('trailerVideo', trailerVideo);
+      }
+
+      chapters.forEach((chapter) => {
+        chapter.chapterContent.forEach((lecture) => {
+          if (lecture.lectureUploadKey && lecture.lectureVideoFile) {
+            formData.append(lecture.lectureUploadKey, lecture.lectureVideoFile);
+          }
+        });
+      });
 
       const token = await getToken()
       const { data } = await axios.post(backendUrl + '/api/educator/add-course', formData, {
@@ -271,7 +293,7 @@ const AddCourse = () => {
         <button
           type='button'
           onClick={() => addListItem(inputValue, setInputValue, list, setList)}
-          className='px-4 rounded bg-blue-600 text-white'
+          className='modern-btn px-4 rounded text-white'
         >
           Add
         </button>
@@ -298,8 +320,8 @@ const AddCourse = () => {
 
   return (
     <div className='h-screen overflow-auto flex flex-col items-start justify-start md:p-8 p-4 pt-8'>
-      <form onSubmit={handleSubmit} className='flex flex-col gap-6 max-w-4xl w-full text-gray-700 pb-8'>
-        <h1 className='text-2xl font-semibold text-gray-900'>Upload New Course</h1>
+      <form data-animate="card" onSubmit={handleSubmit} className='modern-card flex flex-col gap-6 max-w-4xl w-full text-gray-700 pb-8 p-6 md:p-8 bg-white/80'>
+        <h1 data-animate="heading" className='text-2xl font-semibold text-gray-900'>Upload New Course</h1>
 
         <div className='grid md:grid-cols-2 gap-4'>
           <div className='flex flex-col gap-1 md:col-span-2'>
@@ -396,13 +418,37 @@ const AddCourse = () => {
           </div>
         </div>
 
-        <div className='flex md:flex-row flex-col md:items-center gap-3'>
-          <label className='text-sm font-medium min-w-36'>Course Thumbnail</label>
-          <label htmlFor='thumbnailImage' className='inline-flex items-center gap-3 cursor-pointer w-fit'>
-            <img src={assets.file_upload_icon} alt="upload" className='p-3 bg-blue-500 rounded' />
-            <input type="file" id='thumbnailImage' onChange={(e) => setImage(e.target.files[0])} accept="image/*" hidden />
-            {image ? <img className='max-h-16 rounded border' src={URL.createObjectURL(image)} alt="preview" /> : <span className='text-sm text-gray-500'>Choose image</span>}
-          </label>
+        <div className='grid md:grid-cols-2 gap-4'>
+          <div className='flex md:flex-row flex-col md:items-center gap-3'>
+            <label className='text-sm font-medium min-w-36'>Course Thumbnail</label>
+            <label htmlFor='thumbnailImage' className='inline-flex items-center gap-3 cursor-pointer w-fit'>
+              <img src={assets.file_upload_icon} alt="upload" className='p-3 bg-blue-500 rounded' />
+              <input type="file" id='thumbnailImage' onChange={(e) => setImage(e.target.files[0])} accept="image/*" hidden />
+              {image ? <img className='max-h-16 rounded border' src={URL.createObjectURL(image)} alt="preview" /> : <span className='text-sm text-gray-500'>Choose image</span>}
+            </label>
+          </div>
+
+          <div className='flex flex-col gap-2'>
+            <label className='text-sm font-medium'>Course Trailer (Optional)</label>
+            <input
+              value={trailerUrl}
+              onChange={(e) => setTrailerUrl(e.target.value)}
+              type='text'
+              placeholder='Paste trailer link (YouTube or public video URL)'
+              className='outline-none md:py-2.5 py-2 px-3 rounded border border-gray-300'
+            />
+            <label htmlFor='trailerVideo' className='inline-flex items-center gap-3 cursor-pointer w-fit text-sm text-blue-600'>
+              <img src={assets.file_upload_icon} alt="upload trailer" className='p-2 bg-blue-500 rounded w-9 h-9' />
+              <input
+                type='file'
+                id='trailerVideo'
+                onChange={(e) => setTrailerVideo(e.target.files?.[0] || null)}
+                accept='video/*'
+                hidden
+              />
+              {trailerVideo ? `Trailer file: ${trailerVideo.name}` : 'Or upload trailer video'}
+            </label>
+          </div>
         </div>
 
         <div className='grid md:grid-cols-3 gap-4'>
@@ -434,8 +480,8 @@ const AddCourse = () => {
           )}
         </div>
 
-        <div className='border border-gray-300 rounded-lg p-4 bg-white'>
-          <h2 className='text-lg font-semibold text-gray-900'>Course Chapters</h2>
+        <div className='border border-gray-300 rounded-lg p-4 bg-white/85'>
+          <h2 data-animate="heading" className='text-lg font-semibold text-gray-900'>Course Chapters</h2>
           <p className='text-sm text-gray-500 pt-1'>Add chapters and lectures directly here (no popup prompts).</p>
 
           <div className='flex flex-col sm:flex-row gap-2 pt-4'>
@@ -449,7 +495,7 @@ const AddCourse = () => {
             <button
               type='button'
               onClick={addChapter}
-              className='px-4 py-2 rounded bg-blue-600 text-white'
+              className='modern-btn px-4 py-2 rounded text-white'
             >
               + Add Chapter
             </button>
@@ -492,10 +538,13 @@ const AddCourse = () => {
                     {chapter.chapterContent.map((lecture, lectureIndex) => (
                       <div key={lecture.lectureId} className="flex justify-between items-center mb-2 text-sm border-b pb-2">
                         <span className='pr-3'>
-                          {lectureIndex + 1}. {lecture.lectureTitle} | {lecture.lectureDuration} mins | {lecture.isPreviewFree ? 'Free Preview' : 'Paid'}
+                          {lectureIndex + 1}. {lecture.lectureTitle} | {lecture.lectureDuration} mins | Enrolled Only
                         </span>
                         <div className='flex items-center gap-3 shrink-0'>
-                          <a href={lecture.lectureUrl} target="_blank" rel="noreferrer" className="text-blue-500">Preview Link</a>
+                          {lecture.lectureUploadKey
+                            ? <span className="text-emerald-600">Uploaded video</span>
+                            : <span className="text-blue-500">Video link</span>
+                          }
                           <img
                             onClick={() => handleLecture('remove', chapter.chapterId, lectureIndex)}
                             src={assets.cross_icon}
@@ -508,7 +557,7 @@ const AddCourse = () => {
 
                     <button
                       type='button'
-                      className='inline-flex bg-gray-100 p-2 rounded cursor-pointer mt-2 text-sm'
+                      className='outline-btn inline-flex p-2 rounded cursor-pointer mt-2 text-sm'
                       onClick={() => handleLecture('add', chapter.chapterId)}
                     >
                       + Add Lecture
@@ -546,30 +595,35 @@ const AddCourse = () => {
               </div>
 
               <div className="mb-3">
-                <label className="text-sm">Lecture URL</label>
+                <label className="text-sm">Lecture Link (Optional)</label>
                 <input
                   type="text"
                   className="mt-1 block w-full border rounded py-2 px-3"
                   value={lectureDetails.lectureUrl}
                   onChange={(e) => setLectureDetails((prev) => ({ ...prev, lectureUrl: e.target.value }))}
+                  placeholder='YouTube or public video link'
                 />
               </div>
 
-              <div className="flex gap-2 my-4 items-center">
-                <label className="text-sm">Is Preview Free?</label>
+              <div className="mb-4">
+                <label className="text-sm">Upload Lecture Video (Optional)</label>
                 <input
-                  type="checkbox"
-                  className='scale-125'
-                  checked={lectureDetails.isPreviewFree}
-                  onChange={(e) => setLectureDetails((prev) => ({ ...prev, isPreviewFree: e.target.checked }))}
+                  type="file"
+                  className='mt-1 block w-full border rounded py-2 px-3'
+                  accept='video/*'
+                  onChange={(e) => setLectureDetails((prev) => ({ ...prev, lectureVideoFile: e.target.files?.[0] || null }))}
                 />
+                {lectureDetails.lectureVideoFile && (
+                  <p className='text-xs text-emerald-600 mt-1'>{lectureDetails.lectureVideoFile.name}</p>
+                )}
+                <p className='text-xs text-slate-500 mt-1'>Add either link or uploaded video.</p>
               </div>
 
-              <button type='button' className="w-full bg-blue-500 text-white px-4 py-2 rounded mb-2" onClick={addLecture}>
+              <button type='button' className="modern-btn w-full text-white px-4 py-2 rounded mb-2" onClick={addLecture}>
                 Add Lecture
               </button>
 
-              <button type='button' className="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded" onClick={closeLecturePopup}>
+              <button type='button' className="w-full outline-btn text-gray-700 px-4 py-2 rounded" onClick={closeLecturePopup}>
                 Cancel
               </button>
 
@@ -581,8 +635,9 @@ const AddCourse = () => {
         <div className='pt-2'>
           <button
             type="submit"
+            data-animate="button"
             disabled={isSubmitting}
-            className="bg-black text-white w-max py-2.5 px-8 rounded inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="modern-btn text-white w-max py-2.5 px-8 inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSubmitting && (
               <span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
