@@ -6,9 +6,10 @@ import { toast } from 'react-toastify'
 
 const MyCourses = () => {
 
-  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext)
+  const { currency, backendUrl, isEducator, getToken, navigate, fetchAllCourses } = useContext(AppContext)
 
   const [courses, setCourses] = useState(null)
+  const [deletingCourseId, setDeletingCourseId] = useState(null)
 
   const fetchEducatorCourses = async () => {
     // Simulate an API call
@@ -23,6 +24,33 @@ const MyCourses = () => {
    } catch (error) {
     toast.error("Failed to fetch courses" + error.message)
    }
+  }
+
+  const handleDeleteCourse = async (courseId) => {
+    const isConfirmed = window.confirm('Are you sure you want to delete this course? This cannot be undone.');
+    if (!isConfirmed) return;
+
+    try {
+      setDeletingCourseId(courseId);
+      const token = await getToken();
+      const { data } = await axios.delete(`${backendUrl}/api/educator/course/${courseId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (data?.success) {
+        toast.success(data.message || 'Course deleted');
+        setCourses((prev) => prev.filter((course) => course._id !== courseId));
+        fetchAllCourses();
+      } else {
+        toast.error(data?.message || 'Failed to delete course');
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message);
+    } finally {
+      setDeletingCourseId(null);
+    }
   }
 
   useEffect(()=>{
@@ -44,6 +72,7 @@ const MyCourses = () => {
                 <th className="px-4 py-3 font-semibold truncate">Earnings</th>
                 <th className="px-4 py-3 font-semibold truncate">Students</th>
                 <th className="px-4 py-3 font-semibold truncate">Published On</th>
+                <th className="px-4 py-3 font-semibold truncate">Actions</th>
               </tr>
             </thead>
 
@@ -64,6 +93,23 @@ const MyCourses = () => {
                   <td className="px-4 py-3">{course.enrolledStudents.length}</td>
                   <td className="px-4 py-3">
                     {new Date(course.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className='flex items-center gap-2'>
+                      <button
+                        onClick={() => navigate(`/educator/edit-course/${course._id}`)}
+                        className='px-3 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100'
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCourse(course._id)}
+                        disabled={deletingCourseId === course._id}
+                        className='px-3 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-70 disabled:cursor-not-allowed'
+                      >
+                        {deletingCourseId === course._id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

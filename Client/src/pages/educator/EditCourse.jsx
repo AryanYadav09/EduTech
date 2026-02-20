@@ -1,11 +1,13 @@
 import React, { useRef, useState, useEffect, useContext } from 'react'
 import uniqid from 'uniqid'
 import Quill from 'quill'
+import { useParams } from 'react-router-dom'
 import { assets } from '../../assets/assets'
 import "quill/dist/quill.snow.css";
 import { AppContext } from '../../context/AppContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import Loading from '../../components/student/Loading';
 
 const initialLectureState = {
   lectureTitle: '',
@@ -14,8 +16,9 @@ const initialLectureState = {
   isPreviewFree: false,
 };
 
-const AddCourse = () => {
-  const { backendUrl, getToken } = useContext(AppContext)
+const EditCourse = () => {
+  const { courseId } = useParams();
+  const { backendUrl, getToken, navigate, fetchAllCourses } = useContext(AppContext)
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -27,8 +30,10 @@ const AddCourse = () => {
   const [coursePrice, setCoursePrice] = useState(0)
   const [discount, setDiscount] = useState(0)
   const [image, setImage] = useState(null)
+  const [currentThumbnail, setCurrentThumbnail] = useState('')
   const [chapters, setChapters] = useState([]);
   const [newChapterTitle, setNewChapterTitle] = useState('');
+  const [editorHtml, setEditorHtml] = useState('');
 
   const [courseIncludes, setCourseIncludes] = useState([]);
   const [courseOutcomes, setCourseOutcomes] = useState([]);
@@ -41,6 +46,7 @@ const AddCourse = () => {
   const [currentChapterId, setCurrentChapterId] = useState(null);
   const [lectureDetails, setLectureDetails] = useState(initialLectureState);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingCourse, setIsLoadingCourse] = useState(true);
 
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
@@ -50,6 +56,69 @@ const AddCourse = () => {
       });
     }
   }, [])
+
+  useEffect(() => {
+    if (quillRef.current) {
+      quillRef.current.root.innerHTML = editorHtml || '';
+    }
+  }, [editorHtml]);
+
+  const fetchCourse = async () => {
+    try {
+      setIsLoadingCourse(true);
+      const token = await getToken();
+      const { data } = await axios.get(`${backendUrl}/api/educator/course/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!data?.success) {
+        toast.error(data?.message || 'Failed to load course');
+        navigate('/educator/my-courses');
+        return;
+      }
+
+      const course = data.course;
+      setCourseTitle(course.courseTitle || '');
+      setCourseSubtitle(course.courseSubtitle || '');
+      setCourseAbout(course.courseAbout || '');
+      setCourseLanguage(course.courseLanguage || 'English');
+      setCourseLevel(course.courseLevel || 'All Levels');
+      setCoursePrice(course.coursePrice || 0);
+      setDiscount(course.discount || 0);
+      setCurrentThumbnail(course.courseThumbnail || '');
+      setEditorHtml(course.courseDescription || '');
+
+      setCourseIncludes(Array.isArray(course.courseIncludes) ? course.courseIncludes : []);
+      setCourseOutcomes(Array.isArray(course.courseOutcomes) ? course.courseOutcomes : []);
+      setCourseRequirements(Array.isArray(course.courseRequirements) ? course.courseRequirements : []);
+
+      const normalizedChapters = Array.isArray(course.courseContent) ? course.courseContent.map((chapter, chapterIndex) => ({
+        chapterId: chapter.chapterId || uniqid(),
+        chapterTitle: chapter.chapterTitle || '',
+        chapterOrder: chapter.chapterOrder || chapterIndex + 1,
+        collapsed: false,
+        chapterContent: Array.isArray(chapter.chapterContent) ? chapter.chapterContent.map((lecture, lectureIndex) => ({
+          lectureId: lecture.lectureId || uniqid(),
+          lectureTitle: lecture.lectureTitle || '',
+          lectureDuration: lecture.lectureDuration || '',
+          lectureUrl: lecture.lectureUrl || '',
+          isPreviewFree: Boolean(lecture.isPreviewFree),
+          lectureOrder: lecture.lectureOrder || lectureIndex + 1,
+        })) : [],
+      })) : [];
+
+      setChapters(normalizedChapters);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error.message);
+      navigate('/educator/my-courses');
+    } finally {
+      setIsLoadingCourse(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourse();
+  }, [courseId]);
 
   const addListItem = (value, setValue, list, setList) => {
     const trimmedValue = value.trim();
@@ -78,7 +147,7 @@ const AddCourse = () => {
       chapterTitle: title,
       chapterContent: [],
       collapsed: false,
-      chapterOrder: chapters.length > 0 ? chapters[chapters.length - 1].chapterOrder + 1 : 1,
+      chapterOrder: chapters.length + 1,
     };
 
     setChapters((prev) => [...prev, newChapter]);
@@ -144,9 +213,7 @@ const AddCourse = () => {
         lectureDuration: Number(lectureDetails.lectureDuration),
         lectureUrl: lectureDetails.lectureUrl.trim(),
         isPreviewFree: Boolean(lectureDetails.isPreviewFree),
-        lectureOrder: chapter.chapterContent.length > 0
-          ? chapter.chapterContent[chapter.chapterContent.length - 1].lectureOrder + 1
-          : 1
+        lectureOrder: chapter.chapterContent.length + 1,
       };
 
       return { ...chapter, chapterContent: [...chapter.chapterContent, newLecture] };
@@ -155,32 +222,11 @@ const AddCourse = () => {
     closeLecturePopup();
   }
 
-  const resetForm = () => {
-    setCourseTitle('');
-    setCourseSubtitle('');
-    setCourseAbout('');
-    setCourseLanguage('English');
-    setCourseLevel('All Levels');
-    setCoursePrice(0);
-    setDiscount(0);
-    setImage(null);
-    setChapters([]);
-    setNewChapterTitle('');
-    setCourseIncludes([]);
-    setCourseOutcomes([]);
-    setCourseRequirements([]);
-    setIncludeInput('');
-    setOutcomeInput('');
-    setRequirementInput('');
-    if (quillRef.current) quillRef.current.root.innerHTML = '';
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
 
     try {
-      if (!image) return toast.error('Thumbnail not selected');
       if (!courseAbout.trim()) return toast.error('Course about section is required');
       if (courseIncludes.length === 0) return toast.error('Add at least one course include item');
       if (chapters.length === 0) return toast.error('Add at least one chapter');
@@ -212,37 +258,40 @@ const AddCourse = () => {
         courseLanguage,
         coursePrice: Number(coursePrice),
         discount: Number(discount) || 0,
-        courseContent: chapters.map((chapter) => ({
+        courseContent: chapters.map((chapter, chapterIndex) => ({
           chapterId: chapter.chapterId,
           chapterTitle: chapter.chapterTitle.trim(),
-          chapterOrder: chapter.chapterOrder,
-          chapterContent: chapter.chapterContent.map((lecture) => ({
+          chapterOrder: chapterIndex + 1,
+          chapterContent: chapter.chapterContent.map((lecture, lectureIndex) => ({
             lectureId: lecture.lectureId,
             lectureTitle: lecture.lectureTitle.trim(),
             lectureDuration: Number(lecture.lectureDuration),
             lectureUrl: lecture.lectureUrl.trim(),
             isPreviewFree: Boolean(lecture.isPreviewFree),
-            lectureOrder: lecture.lectureOrder,
+            lectureOrder: lectureIndex + 1,
           })),
         })),
       }
 
       const formData = new FormData()
       formData.append('courseData', JSON.stringify(courseData))
-      formData.append('image', image)
+      if (image) {
+        formData.append('image', image)
+      }
 
       const token = await getToken()
-      const { data } = await axios.post(backendUrl + '/api/educator/add-course', formData, {
+      const { data } = await axios.put(`${backendUrl}/api/educator/course/${courseId}`, formData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
 
       if (data.success) {
-        toast.success(data.message)
-        resetForm();
+        toast.success(data.message || 'Course updated');
+        await fetchAllCourses();
+        navigate('/educator/my-courses');
       } else {
-        toast.error(data.message)
+        toast.error(data.message || 'Failed to update course')
       }
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message)
@@ -296,10 +345,12 @@ const AddCourse = () => {
     </div>
   );
 
+  if (isLoadingCourse) return <Loading />;
+
   return (
     <div className='h-screen overflow-auto flex flex-col items-start justify-start md:p-8 p-4 pt-8'>
       <form onSubmit={handleSubmit} className='flex flex-col gap-6 max-w-4xl w-full text-gray-700 pb-8'>
-        <h1 className='text-2xl font-semibold text-gray-900'>Upload New Course</h1>
+        <h1 className='text-2xl font-semibold text-gray-900'>Edit Course</h1>
 
         <div className='grid md:grid-cols-2 gap-4'>
           <div className='flex flex-col gap-1 md:col-span-2'>
@@ -401,7 +452,11 @@ const AddCourse = () => {
           <label htmlFor='thumbnailImage' className='inline-flex items-center gap-3 cursor-pointer w-fit'>
             <img src={assets.file_upload_icon} alt="upload" className='p-3 bg-blue-500 rounded' />
             <input type="file" id='thumbnailImage' onChange={(e) => setImage(e.target.files[0])} accept="image/*" hidden />
-            {image ? <img className='max-h-16 rounded border' src={URL.createObjectURL(image)} alt="preview" /> : <span className='text-sm text-gray-500'>Choose image</span>}
+            {(image || currentThumbnail) ? (
+              <img className='max-h-16 rounded border' src={image ? URL.createObjectURL(image) : currentThumbnail} alt="preview" />
+            ) : (
+              <span className='text-sm text-gray-500'>Choose image</span>
+            )}
           </label>
         </div>
 
@@ -436,7 +491,7 @@ const AddCourse = () => {
 
         <div className='border border-gray-300 rounded-lg p-4 bg-white'>
           <h2 className='text-lg font-semibold text-gray-900'>Course Chapters</h2>
-          <p className='text-sm text-gray-500 pt-1'>Add chapters and lectures directly here (no popup prompts).</p>
+          <p className='text-sm text-gray-500 pt-1'>Update, add, or remove chapters and lectures.</p>
 
           <div className='flex flex-col sm:flex-row gap-2 pt-4'>
             <input
@@ -578,16 +633,21 @@ const AddCourse = () => {
           </div>
         )}
 
-        <div className='pt-2'>
+        <div className='pt-2 flex gap-3'>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-black text-white w-max py-2.5 px-8 rounded inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="bg-black text-white py-2.5 px-8 rounded inline-flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isSubmitting && (
-              <span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
-            )}
-            {isSubmitting ? 'Processing...' : 'ADD COURSE'}
+            {isSubmitting && <span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />}
+            {isSubmitting ? 'Processing...' : 'UPDATE COURSE'}
+          </button>
+          <button
+            type='button'
+            onClick={() => navigate('/educator/my-courses')}
+            className='bg-gray-100 text-gray-700 py-2.5 px-8 rounded'
+          >
+            Cancel
           </button>
         </div>
       </form>
@@ -595,4 +655,4 @@ const AddCourse = () => {
   )
 }
 
-export default AddCourse
+export default EditCourse

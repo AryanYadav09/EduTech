@@ -13,8 +13,13 @@ import userRouter from './routes/userRoutes.js';
 
 const app = express();
 
-await connectDB();
-await connectCloudinary();
+try {
+    await connectDB();
+    await connectCloudinary();
+} catch (error) {
+    console.error("Startup failed:", error.message);
+    process.exit(1);
+}
 
 app.use(cors());
 app.use(express.json());       // JSON body parser BEFORE routers

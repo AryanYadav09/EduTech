@@ -11,6 +11,7 @@ import Loading from './components/student/Loading.jsx';
 import Educator from './pages/educator/Educator.jsx';
 import Dashboard from './pages/educator/Dashboard.jsx';
 import AddCourse from './pages/educator/AddCourse.jsx';
+import EditCourse from './pages/educator/EditCourse.jsx';
 import MyCourses from './pages/educator/MyCourses.jsx';
 import StudentsEnrolled from './pages/educator/StudentsEnrolled.jsx';
 import "quill/dist/quill.snow.css";
@@ -40,6 +41,7 @@ const App = () => {
         <Route path="/educator" element={<Educator />}>
           <Route index element={<Dashboard />} />
           <Route path="add-course" element={<AddCourse />} />
+          <Route path="edit-course/:courseId" element={<EditCourse />} />
           <Route path="my-courses" element={<MyCourses />} />
           <Route path="student-enrolled" element={<StudentsEnrolled />} />
         </Route>
